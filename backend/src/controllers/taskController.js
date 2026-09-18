@@ -21,6 +21,27 @@ export async function getAllTasks(req, res) {
   }
 }
 
+export async function getAllProjectTasks(req, res) {
+  try {
+    const userId = req.user.id;
+    const { projectId } = req.params.id;
+    const query = { user: userId, project: projectId };
+    const tasks = await Task.find(query).sort({ createdAt: -1 }).lean();
+
+    return res.status(200).json({
+      success: true,
+      message: tasks,
+    });
+
+  } catch (error) {
+    console.error("Project listing error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "listing failed",
+    });
+  }
+}
+
 export async function getTaskById(req, res) {
   try {
     const taskId = req.params.id;
