@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
 import api from "../services/api.js";
 import { X } from "lucide-react";
 
@@ -31,8 +30,6 @@ const Login = () => {
         error.response?.data?.message || "An error occurred during login.",
       );
       setLoading(false);
-      console.log("Status:", error.response?.status);
-      console.log("Message:", error.response?.data);
     }
   };
 

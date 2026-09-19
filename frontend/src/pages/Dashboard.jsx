@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { Link } from "react-router-dom";
 import api from "../services/api";
@@ -23,15 +23,14 @@ const Dashboard = () => {
       setProjectsCount(response.data.message.length);
     } catch (error) {
       console.error("Error fetching projects:", error);
-      setProjectError("Failed to load projects. Please try again later.");
+      setProjectError(
+        error.response?.data?.message ||
+          "Failed to load projects. Please try again later.",
+      );
     } finally {
       setProjectLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchProjects();
-  }, []);
 
   const countTaskStats = async () => {
     try {
@@ -54,6 +53,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    fetchProjects();
     countTaskStats();
   }, []);
 
@@ -159,13 +159,6 @@ const Dashboard = () => {
                     </Link>
 
                     <div className="mt-4 flex items-center justify-between">
-                      <Link
-                        to={`/projects/update/${project._id}`}
-                        className="text-sm text-blue-600 hover:underline"
-                      >
-                        Edit Project
-                      </Link>
-
                       <button
                         onClick={(e) => deleteProject(project._id, e)}
                         className="text-sm text-red-600 hover:underline"

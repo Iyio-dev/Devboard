@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 
-dotenv.config()
+dotenv.config();
 
 export async function signUp(req, res) {
   try {
@@ -14,6 +14,10 @@ export async function signUp(req, res) {
         success: false,
         message: "Missing fields required",
       });
+    }
+
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined on this server");
     }
 
     const exists = await User.findOne({ email }).lean();
@@ -33,10 +37,6 @@ export async function signUp(req, res) {
       password: hashedPassword,
     });
     await user.save();
-
-    if (!process.env.JWT_SECRET) {
-      throw new Error("JWT is not defined on this server");
-    }
 
     const token = jwt.sign({ id: user._id.toString() }, process.env.JWT_SECRET, {
       expiresIn: process.env.TOKEN_EXPIRES_IN,
@@ -72,17 +72,21 @@ export async function signIn(req, res) {
       });
     }
 
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined on this server");
+    }
+
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(409).json({
+      return res.status(404).json({
         success: false,
-        message: "Email has been used",
+        message: "No account found with this email",
       });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(409).json({
+      return res.status(401).json({
         success: false,
         message: "Email or password incorrect",
       });
@@ -92,7 +96,7 @@ export async function signIn(req, res) {
       expiresIn: process.env.TOKEN_EXPIRES_IN,
     });
 
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
       message: "Account login successfully",
       token,

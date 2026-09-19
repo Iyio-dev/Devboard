@@ -1,10 +1,11 @@
 import Project from "../models/Project.js";
+import Task from "../models/Task.js";
 
 export async function getAllProjects(req, res) {
   try {
     const userId = req.user.id;
     const query = { user: userId };
-    const projects = await Project.find(query).sort({ ceratedAt: -1 }).lean();
+    const projects = await Project.find(query).sort({ createdAt: -1 }).lean();
 
     return res.status(200).json({
       success: true,
@@ -34,7 +35,7 @@ export async function getProjectById(req, res) {
     if (project.user.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to update this project",
+        message: "Not authorized to view this project",
       });
     }
 
@@ -42,7 +43,6 @@ export async function getProjectById(req, res) {
       success: true,
       message: project,
     });
-
   } catch (error) {
     console.error("Project listing error:", error);
     return res.status(500).json({
@@ -134,7 +134,7 @@ export async function updateProject(req, res) {
 }
 
 export async function deleteProject(req, res) {
-    try{
+  try {
     const projectId = req.params.id;
     const project = await Project.findById(projectId);
 
@@ -148,10 +148,13 @@ export async function deleteProject(req, res) {
     if (project.user.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to update this project",
+        message: "Not authorized to delete this project",
       });
     }
 
+    // Remove the project's tasks so they are not left orphaned in the DB
+    // (orphaned tasks would still count towards the dashboard stats).
+    await Task.deleteMany({ project: projectId });
     await Project.findByIdAndDelete(projectId);
 
     return res.status(200).json({

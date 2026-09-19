@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import dotenv from "dotenv";
-import Project from "../models/Project.js";
 
 dotenv.config();
 
@@ -22,21 +21,19 @@ export default async function authMiddleware(req, res, next) {
     const user = await User.findById(payload.id).select("-password");
 
     if (!user) {
-      res.status(401).json({
+      return res.status(401).json({
         success: false,
         message: "User not found",
       });
-      req.user = user;
     }
 
     req.user = user;
     next();
   } catch (error) {
-    console.error("JWT VERIFICATION FAILED", error);
-    res.status(401).json({
+    console.error("JWT verification failed:", error.message);
+    return res.status(401).json({
       success: false,
-      message: "Token Invalid or expired",
+      message: "Token invalid or expired",
     });
   }
 }
-

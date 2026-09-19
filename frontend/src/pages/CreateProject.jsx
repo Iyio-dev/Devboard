@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Navbar from "../components/Navbar";
 import api from "../services/api";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const CreateProject = () => {
-  const [ProjectName, setProjectName] = useState("");
-  const [ProjectDetails, setProjectDetails] = useState("");
+  const [projectName, setProjectName] = useState("");
+  const [projectDetails, setProjectDetails] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -17,11 +17,11 @@ const CreateProject = () => {
     setError(null);
 
     try {
-      const createProject = await api.post("/projects/create", {
-        name: ProjectName,
-        details: ProjectDetails,
+      await api.post("/projects/create", {
+        name: projectName,
+        details: projectDetails,
       });
-      
+
       navigate("/dashboard");
     } catch (error) {
       setError(
@@ -29,8 +29,6 @@ const CreateProject = () => {
           "An error occurred during project creation.",
       );
       setLoading(false);
-      console.log("Status:", error.response?.status);
-      console.log("Message:", error.response?.data);
     }
   };
 
@@ -85,7 +83,7 @@ const CreateProject = () => {
                   name="projectName"
                   placeholder="e.g. DevBoard"
                   onChange={(e) => setProjectName(e.target.value)}
-                  value={ProjectName}
+                  value={projectName}
                   className="mt-3 block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
                 />
               </div>
@@ -109,7 +107,7 @@ const CreateProject = () => {
                   rows={5}
                   placeholder="Describe your project..."
                   onChange={(e) => setProjectDetails(e.target.value)}
-                  value={ProjectDetails}
+                  value={projectDetails}
                   className="mt-3 block w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
                 />
               </div>

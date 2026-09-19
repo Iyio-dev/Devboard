@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { LogOut, Menu, X } from "lucide-react";
 
@@ -18,6 +18,8 @@ const Navbar = () => {
     };
 
     window.addEventListener("authChanged", handleAuthChange);
+
+    return () => window.removeEventListener("authChanged", handleAuthChange);
   }, []);
 
   const handleLogout = () => {

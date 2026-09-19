@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 import Navbar from "./Navbar";
 import api from "../services/api";
+import UpdateProject from "./UpdateProject";
 
 import { Link, useNavigate, useParams } from "react-router-dom";
 
@@ -11,7 +12,6 @@ import {
   CheckCircle2,
   Circle,
   Clock3,
-  MoreHorizontal,
   Plus,
   Pencil,
   Trash2,
@@ -25,6 +25,7 @@ const ProjectCard = () => {
   const [projectLoading, setProjectLoading] = useState(true);
   const [projectDeleteLoading, setProjectDeleteLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showEditProjectModal, setShowEditProjectModal] = useState(false);
 
   const [projectTasks, setProjectTasks] = useState([]);
 
@@ -53,11 +54,6 @@ const ProjectCard = () => {
 
       setProject(projectResponse.data.message);
       setProjectTasks(tasksResponse.data.message);
-
-      console.log("Project data fetched successfully:", {
-        project: projectResponse.data.message,
-        tasks: tasksResponse.data.message,
-      });
     } catch (error) {
       console.error("Error fetching project:", error);
 
@@ -104,8 +100,6 @@ const ProjectCard = () => {
         name: taskName,
         details: taskDetails,
       });
-
-      console.log(response.data?.message);
 
       setShowAddTaskForm(false);
 
@@ -194,7 +188,6 @@ const ProjectCard = () => {
         details: editTaskDetails,
       });
 
-      console.log(response.data);
       setProjectTasks((prevTasks) =>
         prevTasks.map((task) =>
           task._id === taskEditId
@@ -220,7 +213,7 @@ const ProjectCard = () => {
 
   useEffect(() => {
     fetchProjectData();
-  }, [id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps -- fetch once per project id
 
   // Task statistics
   const completedTasks = projectTasks.filter(
@@ -331,13 +324,12 @@ const ProjectCard = () => {
 
                 {/* Project actions */}
                 <div className="flex items-center gap-2">
-                  <Link
-                    to={`/update-project/${project?._id}`}
-                    className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                  <button
+                    onClick={() => setShowEditProjectModal(true)}
+                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                   >
-                    <Pencil size={16} />
-                    Edit
-                  </Link>
+                    Edit Project
+                  </button>
 
                   <button
                     onClick={(e) => deleteProject(project._id, e)}
@@ -726,6 +718,14 @@ const ProjectCard = () => {
           )}
         </div>
       </section>
+      {showEditProjectModal && (
+        <UpdateProject
+          project={project}
+          onClose={() => setShowEditProjectModal(false)}
+          onUpdated={(updatedProject) => setProject(updatedProject)}
+          onError={(error) => setError(error)}
+        />
+      )}
     </>
   );
 };

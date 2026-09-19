@@ -13,7 +13,7 @@ export async function getAllTasks(req, res) {
     });
 
   } catch (error) {
-    console.error("Project listing error:", error);
+    console.error("Task listing error:", error);
     return res.status(500).json({
       success: false,
       message: "listing failed",

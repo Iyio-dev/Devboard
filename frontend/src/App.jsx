@@ -1,8 +1,8 @@
-import React from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
 import Login from './components/Login'
+import SignUp from './components/SignUp'
 import CreateProject from './pages/CreateProject'
 import ProjectCard from './components/ProjectCard'
 
@@ -11,7 +11,8 @@ const App = () => {
     <Routes>
       <Route path='/' element={<Home />}/>
       <Route path='/sign-in' element={<Login />}/>
-      <Route path='/dashboard' element={<Dashboard />}/> 
+      <Route path='/sign-up' element={<SignUp />}/>
+      <Route path='/dashboard' element={<Dashboard />}/>
       <Route path='/create-project' element={<CreateProject />}/>
       <Route path='/projects/:id' element={<ProjectCard />}/>
       <Route path='*' element={<div>404 Not Found</div>}/>
