@@ -19,14 +19,14 @@ const Home = () => {
 
           <div className="flex items-center gap-3">
             <Link
-              to="/login"
+              to="/sign-in"
               className="rounded-lg px-4 py-2 text-sm font-medium text-slate-300 transition hover:text-white"
             >
               Login
             </Link>
 
             <Link
-              to="/register"
+              to="/sign-up"
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold transition hover:bg-blue-500"
             >
               Get Started
@@ -56,7 +56,7 @@ const Home = () => {
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
-                to="/register"
+                to="/sign-up"
                 className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold transition hover:bg-blue-500"
               >
                 Get Started
@@ -64,7 +64,7 @@ const Home = () => {
               </Link>
 
               <Link
-                to="/login"
+                to="/sign-in"
                 className="rounded-lg border border-slate-700 px-6 py-3 font-semibold text-slate-200 transition hover:border-slate-600 hover:bg-slate-900"
               >
                 Sign In
