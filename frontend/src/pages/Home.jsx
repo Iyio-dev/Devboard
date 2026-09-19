@@ -120,7 +120,7 @@ const Home = () => {
             </p>
 
             <Link
-              to="/register"
+              to="/sign-up"
               className="mt-8 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold transition hover:bg-blue-500"
             >
               Create Your Account
