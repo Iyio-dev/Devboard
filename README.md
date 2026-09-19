@@ -1,207 +1,195 @@
 # DevBoard
 
-DevBoard is a full-stack project and task management application. Users can register an account, create projects, and break each project down into tasks that can be created, edited, completed, and deleted. A dashboard gives an at-a-glance overview of total projects, total tasks, and completed tasks, and every project shows a live progress bar based on its completed tasks.
+DevBoard is a full-stack project and task management application built to help users organize projects, manage tasks, and track progress from a simple dashboard.
+
+🔗 **Live Demo:** https://devboard-two-flax.vercel.app/
 
 ## Features
 
-- User authentication (register, log in, log out) with JSON Web Tokens
-- Protected API routes — users can only ever see and modify their own data
-- Create, read, update, and delete projects
-- Create, read, update, and delete tasks inside a project
-- Mark tasks as completed
-- Per-project statistics: total tasks, completed tasks, and a progress bar
-- Dashboard overview with total projects, total tasks, and completed tasks
-- Loading, error, and empty states on data-driven pages
-- Responsive layout with a mobile navigation menu
+* User registration and authentication
+* JWT-based authentication
+* Create, view, update, and delete projects
+* Create and manage project tasks
+* Mark tasks as completed
+* Track project progress
+* Protected API routes
+* Responsive dashboard
+* RESTful API
+* MongoDB data persistence
 
 ## Tech Stack
 
-**Frontend:**
+### Frontend
 
-- React
-- Vite
-- React Router
-- Tailwind CSS
-- Axios
-- lucide-react (icons)
+* React
+* Vite
+* React Router
+* Tailwind CSS
+* Axios
+* Lucide React
 
-**Backend:**
+### Backend
 
-- Node.js
-- Express
-- MongoDB
-- Mongoose
-- JWT (jsonwebtoken)
-- bcryptjs (password hashing)
+* Node.js
+* Express.js
+* MongoDB
+* Mongoose
+* JSON Web Tokens
+* bcryptjs
 
 ## Architecture
 
+```text
+React + Vite
+     ↓
+   Axios
+     ↓
+REST API
+     ↓
+Node.js + Express
+     ↓
+   MongoDB
 ```
-React frontend (Vite)
-        │  Axios HTTP requests (JWT sent in the Authorization header)
-        ▼
-REST API — Express backend  (/api/v1/...)
-        │  Mongoose ODM
-        ▼
-MongoDB database
-```
-
-The backend exposes a versioned REST API under `/api/v1`. Every request to the projects and tasks routes passes through an authentication middleware that verifies the JWT before the controller runs.
 
 ## Authentication
 
-Authentication is token-based. When a user registers or logs in, the backend verifies their credentials (passwords are hashed with bcrypt) and returns a signed JWT. The frontend stores the token in `localStorage` and an Axios request interceptor automatically attaches it to every API request as an `Authorization: Bearer <token>` header. On the backend, `authMiddleware` verifies the token, loads the user, and attaches it to the request — controllers then check resource ownership (`project.user` / `task.user`) before allowing any read or write.
+DevBoard uses JWT-based authentication.
 
-## API Routes
+Users can register and log in, after which authenticated requests include a JWT in the authorization header. Protected backend routes verify the token before allowing access to user-specific resources.
 
-Base URL: `/api/v1`
+## Core API Routes
 
-### Auth
+### Authentication
 
-| Method | Endpoint         | Description                    | Auth required |
-| ------ | ---------------- | ------------------------------ | ------------- |
-| POST   | `/auth/sign-up`  | Register a new account         | No            |
-| POST   | `/auth/sign-in`  | Log in and receive a JWT       | No            |
+```text
+POST /api/v1/auth/sign-up
+POST /api/v1/auth/sign-in
+```
 
 ### Projects
 
-| Method | Endpoint               | Description                          | Auth required |
-| ------ | ---------------------- | ------------------------------------ | ------------- |
-| GET    | `/projects/`           | List the current user's projects     | Yes           |
-| GET    | `/projects/:id`        | Get a single project                 | Yes           |
-| POST   | `/projects/create`     | Create a project                     | Yes           |
-| PUT    | `/projects/update/:id` | Update a project                     | Yes           |
-| DELETE | `/projects/delete/:id` | Delete a project (and its tasks)     | Yes           |
-| GET    | `/projects/:id/tasks`  | List all tasks inside a project      | Yes           |
+```text
+GET    /api/v1/projects/
+POST   /api/v1/projects/create
+GET    /api/v1/projects/:id
+PATCH  /api/v1/projects/:id
+DELETE /api/v1/projects/:id
+```
 
 ### Tasks
 
-| Method | Endpoint              | Description                     | Auth required |
-| ------ | --------------------- | ------------------------------- | ------------- |
-| GET    | `/tasks/all`          | List all of the user's tasks    | Yes           |
-| GET    | `/tasks/:id`          | Get a single task               | Yes           |
-| POST   | `/tasks/:id/create`   | Create a task in project `:id`  | Yes           |
-| PUT    | `/tasks/update/:id`   | Update a task                   | Yes           |
-| PATCH  | `/tasks/complete/:id` | Mark a task as completed        | Yes           |
-| DELETE | `/tasks/delete/:id`   | Delete a task                   | Yes           |
+```text
+GET   /api/v1/tasks/all
+PATCH /api/v1/tasks/complete/:id
+```
 
-## Installation
+> Additional endpoints may be available depending on the current implementation.
 
-### Prerequisites
-
-- Node.js (v18+)
-- MongoDB running locally, or a MongoDB Atlas connection string
+## Getting Started
 
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repo-url>
-cd devboard
+git clone YOUR_GITHUB_REPOSITORY_URL
+cd DevBoard
 ```
 
-### 2. Install backend dependencies
+### 2. Install frontend dependencies
 
 ```bash
-cd backend
+cd frontend
 npm install
 ```
 
-### 3. Install frontend dependencies
+### 3. Install backend dependencies
 
 ```bash
-cd ../frontend
+cd ../backend
 npm install
 ```
 
 ### 4. Configure environment variables
 
-Create `backend/.env` (see `backend/.env.example`):
+Create a `.env` file in the backend directory.
+
+Example:
 
 ```env
-MONGO_URI=mongodb://localhost:27017/devboard
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
 PORT=5001
-JWT_SECRET=your-long-random-secret
-TOKEN_EXPIRES_IN=7d
 ```
 
-Optionally create `frontend/.env` if your backend is not running on the default local address (see `frontend/.env.example`):
+For the frontend:
 
 ```env
 VITE_API_URL=http://localhost:5001/api/v1
 ```
 
-### 5. Start MongoDB
+Never commit your `.env` files to GitHub.
 
-Make sure your local MongoDB instance is running (or that your Atlas `MONGO_URI` is reachable).
-
-### 6. Start the backend
+### 5. Start the backend
 
 ```bash
 cd backend
 npm run dev
 ```
 
-The API will run on `http://localhost:5001` (or your configured `PORT`).
+### 6. Start the frontend
 
-### 7. Start the frontend
-
-In a second terminal:
+Open another terminal:
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-The app will be available at the URL Vite prints (usually `http://localhost:5173`).
+The application will then be available through the Vite development server.
 
-## Environment Variables
+## Deployment
 
-### Backend (`backend/.env`)
+The production version of DevBoard is deployed using:
 
-```env
-MONGO_URI=          # MongoDB connection string
-JWT_SECRET=         # Secret used to sign JWTs
-PORT=               # Port the Express server listens on
-TOKEN_EXPIRES_IN=   # JWT lifetime, e.g. 7d
-```
-
-### Frontend (`frontend/.env`, optional)
-
-```env
-VITE_API_URL=       # Backend API base URL, e.g. http://localhost:5001/api/v1
-```
-
-## Screenshots
-
-<!-- Add screenshots after deployment -->
-
-- **Landing page** — _screenshot coming soon_
-- **Dashboard** — _screenshot coming soon_
-- **Project detail with tasks & progress** — _screenshot coming soon_
-- **Create project / auth pages** — _screenshot coming soon_
+* Frontend: Vercel
+* Backend: Render
+* Database: MongoDB Atlas
 
 ## What I Learned
 
-Building DevBoard taught me how the pieces of a full-stack JavaScript application fit together end to end:
+Building DevBoard helped me strengthen my understanding of full-stack JavaScript development.
 
-- Designing a versioned **REST API** with Express and organizing it into routes, controllers, middleware, and models
-- Implementing **JWT authentication**: hashing passwords with bcrypt, signing and verifying tokens, and protecting routes with middleware
-- Enforcing **per-user authorization** so users can only access resources they own
-- Modeling relational data in MongoDB with **Mongoose** (users → projects → tasks)
-- Managing **async data fetching in React** with loading, error, and empty states
-- Keeping the UI in sync with the server using React state updates and custom browser events
-- Handling CORS and environment-based configuration for local vs. deployed environments
+Some of the main concepts I practiced include:
+
+* Building REST APIs with Express
+* Connecting Node.js applications to MongoDB
+* Designing Mongoose models
+* Implementing JWT authentication
+* Protecting API routes
+* Managing authentication state in React
+* Connecting React applications to backend APIs with Axios
+* Handling CRUD operations
+* Managing asynchronous requests and loading states
+* Deploying a full-stack application
+* Working with environment variables in development and production
 
 ## Future Improvements
 
-Ideas for a V2 (not yet implemented):
+Possible improvements for future versions include:
 
-- Due dates and priorities for tasks
-- Drag-and-drop task ordering / Kanban board view
-- Refresh tokens and "remember me" sessions
-- Project sharing / collaboration between users
-- Search and filtering across projects and tasks
+* Task priorities and due dates
+* Project search and filtering
+* Improved project analytics
+* Collaboration and project members
+* Notifications
+* Automated testing
+* More advanced authorization
 
 ## Author
 
-Ajibola Iyiola
+**Ajibola Iyiola**
+
+Full-stack JavaScript developer focused on building practical web applications.
+
+## Live Demo
+
+🚀 https://devboard-two-flax.vercel.app/
