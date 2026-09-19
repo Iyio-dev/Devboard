@@ -24,10 +24,9 @@ export async function getAllTasks(req, res) {
 export async function getAllProjectTasks(req, res) {
   try {
     const userId = req.user.id;
-    const { projectId } = req.params.id;
-    const query = { user: userId, project: projectId };
-    const tasks = await Task.find(query).sort({ createdAt: -1 }).lean();
-
+    const { id } = req.params;
+    const query = { user: userId, project: id };
+    const tasks = await Task.find(query).sort({ createdAt: -1 });
     return res.status(200).json({
       success: true,
       message: tasks,
