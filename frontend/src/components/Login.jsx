@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api.js";
+import { saveSession } from "../services/auth.js";
+import { useToast } from "../toastContext.js";
 import { X } from "lucide-react";
 
 const Login = () => {
@@ -8,23 +10,29 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Where the user was heading before being sent here (protected route redirect)
+  const redirectTo = location.state?.from || "/dashboard";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       setLoading(true);
+      setError(null);
+
       const login = await api.post("/auth/sign-in", {
         email: email,
         password: password,
       });
 
-      localStorage.setItem("token", login.data.token);
-      navigate("/dashboard");
-
-      window.dispatchEvent(new Event("authChanged"));
+      saveSession(login.data.token, login.data.user);
+      toast.success(`Welcome back, ${login.data.user.name}!`);
+      navigate(redirectTo);
     } catch (error) {
       setError(
         error.response?.data?.message || "An error occurred during login.",
@@ -41,11 +49,13 @@ const Login = () => {
         </h2>
 
         {error && (
-          <div className="flex justify-center align-middle mb-4 rounded-lg bg-red-100 p-4">
-            <X className="mr-2 h-5 w-5 text-red-700" onClick={() => setError(false)}/>
-            <div className="text-sm text-red-700">
-            {error}
-          </div>
+          <div className="mb-4 flex items-center justify-center rounded-lg bg-red-100 p-4">
+            <X
+              className="mr-2 h-5 w-5 cursor-pointer text-red-700"
+              onClick={() => setError(null)}
+              aria-label="Dismiss error"
+            />
+            <div className="text-sm text-red-700">{error}</div>
           </div>
         )}
 
@@ -87,15 +97,15 @@ const Login = () => {
               className="w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
+
           {loading ? (
-            <>
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-blue-400 px-4 py-2.5 font-semibold text-white transition hover:bg-blue-700"
-              >
-                Logging in...
-              </button>
-            </>
+            <button
+              type="submit"
+              disabled
+              className="w-full cursor-not-allowed rounded-lg bg-blue-400 px-4 py-2.5 font-semibold text-white"
+            >
+              Logging in...
+            </button>
           ) : (
             <button
               type="submit"

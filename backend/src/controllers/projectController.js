@@ -1,11 +1,20 @@
 import Project from "../models/Project.js";
 import Task from "../models/Task.js";
+import isValidObjectId from "../utils/isValidObjectId.js";
+
+// Helpers: every query includes the user id, so a user can only ever
+// read or modify their own documents — even if they guess another
+// user's project id.
+
+function getOwnedProjectQuery(projectId, userId) {
+  return { _id: projectId, user: userId };
+}
 
 export async function getAllProjects(req, res) {
   try {
-    const userId = req.user.id;
-    const query = { user: userId };
-    const projects = await Project.find(query).sort({ createdAt: -1 }).lean();
+    const projects = await Project.find({ user: req.user.id })
+      .sort({ createdAt: -1 })
+      .lean();
 
     return res.status(200).json({
       success: true,
@@ -23,7 +32,17 @@ export async function getAllProjects(req, res) {
 export async function getProjectById(req, res) {
   try {
     const projectId = req.params.id;
-    const project = await Project.findById(projectId);
+
+    if (!isValidObjectId(projectId)) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    const project = await Project.findOne(
+      getOwnedProjectQuery(projectId, req.user.id),
+    );
 
     if (!project) {
       return res.status(404).json({
@@ -32,19 +51,12 @@ export async function getProjectById(req, res) {
       });
     }
 
-    if (project.user.toString() !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized to view this project",
-      });
-    }
-
     return res.status(200).json({
       success: true,
       message: project,
     });
   } catch (error) {
-    console.error("Project listing error:", error);
+    console.error("Project fetch error:", error);
     return res.status(500).json({
       success: false,
       message: "listing failed",
@@ -63,13 +75,11 @@ export async function createProject(req, res) {
       });
     }
 
-    const payload = {
+    const created = await Project.create({
       name,
       details,
       user: req.user.id,
-    };
-
-    const created = await Project.create(payload);
+    });
 
     return res.status(201).json({
       success: true,
@@ -88,19 +98,11 @@ export async function createProject(req, res) {
 export async function updateProject(req, res) {
   try {
     const projectId = req.params.id;
-    const project = await Project.findById(projectId);
 
-    if (!project) {
+    if (!isValidObjectId(projectId)) {
       return res.status(404).json({
         success: false,
         message: "Project not found",
-      });
-    }
-
-    if (project.user.toString() !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized to update this project",
       });
     }
 
@@ -113,11 +115,18 @@ export async function updateProject(req, res) {
       });
     }
 
-    const updatedProject = await Project.findByIdAndUpdate(
-      projectId,
+    const updatedProject = await Project.findOneAndUpdate(
+      getOwnedProjectQuery(projectId, req.user.id),
       { name, details },
       { new: true },
     );
+
+    if (!updatedProject) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -136,26 +145,28 @@ export async function updateProject(req, res) {
 export async function deleteProject(req, res) {
   try {
     const projectId = req.params.id;
-    const project = await Project.findById(projectId);
 
-    if (!project) {
+    if (!isValidObjectId(projectId)) {
       return res.status(404).json({
         success: false,
         message: "Project not found",
       });
     }
 
-    if (project.user.toString() !== req.user.id) {
-      return res.status(403).json({
+    const deleted = await Project.findOneAndDelete(
+      getOwnedProjectQuery(projectId, req.user.id),
+    );
+
+    if (!deleted) {
+      return res.status(404).json({
         success: false,
-        message: "Not authorized to delete this project",
+        message: "Project not found",
       });
     }
 
     // Remove the project's tasks so they are not left orphaned in the DB
     // (orphaned tasks would still count towards the dashboard stats).
     await Task.deleteMany({ project: projectId });
-    await Project.findByIdAndDelete(projectId);
 
     return res.status(200).json({
       success: true,

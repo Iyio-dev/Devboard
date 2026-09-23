@@ -108,6 +108,37 @@ const Home = () => {
           </div>
         </section>
 
+        {/* How it works */}
+        <section className="mx-auto max-w-7xl px-6 py-20">
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <h2 className="text-3xl font-bold">How it works</h2>
+
+            <p className="mt-4 text-slate-400">
+              From idea to done in three simple steps.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            <StepCard
+              number="1"
+              title="Create a project"
+              description="Sign up and add the project you're working on with a short description."
+            />
+
+            <StepCard
+              number="2"
+              title="Break it into tasks"
+              description="Split the project into manageable tasks and track each one as you go."
+            />
+
+            <StepCard
+              number="3"
+              title="Watch progress build up"
+              description="Complete tasks and see your project's progress update in real time."
+            />
+          </div>
+        </section>
+
         {/* CTA */}
         <section className="mx-auto max-w-7xl px-6 py-20">
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-10 text-center sm:p-16">
@@ -138,6 +169,20 @@ const Home = () => {
           <p>Built with React, Node.js, Express & MongoDB</p>
         </div>
       </footer>
+    </div>
+  );
+};
+
+const StepCard = ({ number, title, description }) => {
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-950 p-6 text-center">
+      <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-blue-600/20 text-lg font-bold text-blue-500">
+        {number}
+      </div>
+
+      <h3 className="text-lg font-semibold">{title}</h3>
+
+      <p className="mt-3 leading-7 text-slate-400">{description}</p>
     </div>
   );
 };

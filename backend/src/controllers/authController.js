@@ -16,6 +16,13 @@ export async function signUp(req, res) {
       });
     }
 
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters",
+      });
+    }
+
     if (!process.env.JWT_SECRET) {
       throw new Error("JWT_SECRET is not defined on this server");
     }
@@ -59,6 +66,20 @@ export async function signUp(req, res) {
       message: "Registration failed",
     });
   }
+}
+
+// Returns the currently authenticated user's basic profile.
+// Used by the frontend to keep user info after a page refresh.
+export async function getMe(req, res) {
+  return res.status(200).json({
+    success: true,
+    user: {
+      id: req.user._id.toString(),
+      name: req.user.name,
+      email: req.user.email,
+      createdAt: req.user.createdAt,
+    },
+  });
 }
 
 export async function signIn(req, res) {

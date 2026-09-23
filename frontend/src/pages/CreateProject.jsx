@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import api from "../services/api";
+import { useToast } from "../toastContext.js";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -10,6 +11,7 @@ const CreateProject = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,11 +24,12 @@ const CreateProject = () => {
         details: projectDetails,
       });
 
+      toast.success("Project created successfully.");
       navigate("/dashboard");
     } catch (error) {
       setError(
         error.response?.data?.message ||
-          "An error occurred during project creation.",
+          "We couldn't create this project. Please try again.",
       );
       setLoading(false);
     }
@@ -54,10 +57,11 @@ const CreateProject = () => {
           {/* Form Card */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
             {error && (
-              <div className="flex justify-center align-middle mb-4 rounded-lg bg-red-100 p-4">
+              <div className="mb-4 flex items-center justify-center rounded-lg bg-red-100 p-4">
                 <X
-                  className="mr-2 h-5 w-5 text-red-700"
-                  onClick={() => setError(false)}
+                  className="mr-2 h-5 w-5 cursor-pointer text-red-700"
+                  onClick={() => setError(null)}
+                  aria-label="Dismiss error"
                 />
                 <div className="text-sm text-red-700">{error}</div>
               </div>
@@ -84,6 +88,7 @@ const CreateProject = () => {
                   placeholder="e.g. DevBoard"
                   onChange={(e) => setProjectName(e.target.value)}
                   value={projectName}
+                  required
                   className="mt-3 block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
                 />
               </div>
@@ -108,6 +113,7 @@ const CreateProject = () => {
                   placeholder="Describe your project..."
                   onChange={(e) => setProjectDetails(e.target.value)}
                   value={projectDetails}
+                  required
                   className="mt-3 block w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
                 />
               </div>
@@ -116,26 +122,20 @@ const CreateProject = () => {
               <div className="flex flex-col-reverse gap-3 border-t border-gray-100 pt-6 sm:flex-row sm:justify-end">
                 <button
                   type="button"
-                  className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                  onClick={() => navigate("/dashboard")}
+                  disabled={loading}
+                  className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
                 >
                   Cancel
                 </button>
 
-                {loading ? (
-                  <button
-                    type="submit"
-                    className="rounded-lg bg-gray-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
-                  >
-                    Please wait...
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    className="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
-                  >
-                    Create Project
-                  </button>
-                )}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {loading ? "Creating..." : "Create Project"}
+                </button>
               </div>
             </form>
           </div>

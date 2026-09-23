@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api.js";
+import { saveSession } from "../services/auth.js";
+import { useToast } from "../toastContext.js";
 import { X } from "lucide-react";
 
 const SignUp = () => {
@@ -9,6 +11,7 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   const navigate = useNavigate();
 
@@ -17,6 +20,12 @@ const SignUp = () => {
     setLoading(true);
     setError(null);
 
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await api.post("/auth/sign-up", {
         name,
@@ -24,8 +33,8 @@ const SignUp = () => {
         password,
       });
 
-      localStorage.setItem("token", response.data.token);
-      window.dispatchEvent(new Event("authChanged"));
+      saveSession(response.data.token, response.data.user);
+      toast.success(`Welcome to DevBoard, ${response.data.user.name}!`);
       navigate("/dashboard");
     } catch (error) {
       setError(
@@ -47,6 +56,7 @@ const SignUp = () => {
             <X
               className="mr-2 h-5 w-5 cursor-pointer text-red-700"
               onClick={() => setError(null)}
+              aria-label="Dismiss error"
             />
             <div className="text-sm text-red-700">{error}</div>
           </div>
@@ -104,8 +114,9 @@ const SignUp = () => {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Create a password"
+              placeholder="At least 8 characters"
               required
+              minLength={8}
               className="w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
@@ -114,7 +125,7 @@ const SignUp = () => {
             <button
               type="submit"
               disabled
-              className="w-full rounded-lg bg-blue-400 px-4 py-2.5 font-semibold text-white"
+              className="w-full cursor-not-allowed rounded-lg bg-blue-400 px-4 py-2.5 font-semibold text-white"
             >
               Creating account...
             </button>
