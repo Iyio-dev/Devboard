@@ -15,7 +15,6 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Where the user was heading before being sent here (protected route redirect)
   const redirectTo = location.state?.from || "/dashboard";
 
   const handleSubmit = async (e) => {

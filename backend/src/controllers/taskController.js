@@ -1,264 +1,242 @@
 import Project from "../models/Project.js";
 import Task from "../models/Task.js";
 import isValidObjectId from "../utils/isValidObjectId.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import { getPagination, buildPaginationMeta } from "../utils/paginate.js";
 
 // Every query includes the user id, so a user can only ever read or
 // modify their own tasks — even if they guess another user's task id.
 
-export async function getAllTasks(req, res) {
-  try {
-    const tasks = await Task.find({ user: req.user.id })
-      .sort({ createdAt: -1 })
-      .lean();
+export const getAllTasks = asyncHandler(async (req, res) => {
+    const { page, limit, skip } = getPagination(req.query);
+    const filter = { user: req.user.id };
+
+    const [tasks, total] = await Promise.all([
+        Task.find(filter)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+        Task.countDocuments(filter),
+    ]);
 
     return res.status(200).json({
-      success: true,
-      message: tasks,
+        success: true,
+        message: tasks,
+        pagination: buildPaginationMeta(page, limit, total),
     });
-  } catch (error) {
-    console.error("Task listing error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "listing failed",
-    });
-  }
-}
+});
 
-export async function getAllProjectTasks(req, res) {
-  try {
+export const getAllProjectTasks = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
 
     if (!isValidObjectId(id)) {
-      return res.status(200).json({ success: true, message: [] });
+        return next({
+            status: 404,
+            message: "Project not found",
+        });
     }
 
-    const tasks = await Task.find({ user: req.user.id, project: id }).sort({
-      createdAt: -1,
-    });
+    const { page, limit, skip } = getPagination(req.query);
+    const filter = { user: req.user.id, project: id };
+
+    const [tasks, total] = await Promise.all([
+        Task.find(filter)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+        Task.countDocuments(filter),
+    ]);
 
     return res.status(200).json({
-      success: true,
-      message: tasks,
+        success: true,
+        message: tasks,
+        pagination: buildPaginationMeta(page, limit, total),
     });
-  } catch (error) {
-    console.error("Project tasks listing error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "listing failed",
-    });
-  }
-}
+});
 
-export async function getTaskById(req, res) {
-  try {
+export const getTaskById = asyncHandler(async (req, res, next) => {
     const taskId = req.params.id;
 
     if (!isValidObjectId(taskId)) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found",
-      });
+        return next({
+            status: 404,
+            message: "Task not found",
+        });
     }
 
-    const task = await Task.findOne({ _id: taskId, user: req.user.id });
+    const task = await Task.findOne({
+        _id: taskId,
+        user: req.user.id,
+    });
 
     if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found",
-      });
+        return next({
+            status: 404,
+            message: "Task not found",
+        });
     }
 
     return res.status(200).json({
-      success: true,
-      message: task,
+        success: true,
+        message: task,
     });
-  } catch (error) {
-    console.error("Task fetch error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "listing failed",
-    });
-  }
-}
+});
 
-export async function createTask(req, res) {
-  try {
+export const createTask = asyncHandler(async (req, res, next) => {
     const projectId = req.params.id;
 
     if (!isValidObjectId(projectId)) {
-      return res.status(404).json({
-        success: false,
-        message: "Project not found",
-      });
+        return next({
+            status: 404,
+            message: "Project not found",
+        });
     }
 
     // The task must belong to a project the user owns
     const project = await Project.findOne({
-      _id: projectId,
-      user: req.user.id,
+        _id: projectId,
+        user: req.user.id,
     });
 
     if (!project) {
-      return res.status(404).json({
-        success: false,
-        message: "Project not found",
-      });
+        return next({
+            status: 404,
+            message: "Project not found",
+        });
     }
 
     const { name, details } = req.body;
 
     if (!name || !details) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing fields required",
-      });
+        return next({
+            status: 400,
+            message: "Missing fields required",
+        });
     }
 
     const created = await Task.create({
-      name,
-      details,
-      user: req.user.id,
-      status: "in-progress",
-      project: projectId,
+        name,
+        details,
+        user: req.user.id,
+        status: "in-progress",
+        project: projectId,
     });
 
     return res.status(201).json({
-      success: true,
-      message: "Task created successfully",
-      result: created,
+        success: true,
+        message: "Task created successfully",
+        result: created,
     });
-  } catch (error) {
-    console.error("Task creation error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "creation failed",
-    });
-  }
-}
+});
 
-export async function updateTask(req, res) {
-  try {
+export const updateTask = asyncHandler(async (req, res, next) => {
     const taskId = req.params.id;
 
     if (!isValidObjectId(taskId)) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found",
-      });
+        return next({
+            status: 404,
+            message: "Task not found",
+        });
     }
 
     const { name, details } = req.body;
 
     if (!name || !details) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing fields required",
-      });
+        return next({
+            status: 400,
+            message: "Missing fields required",
+        });
     }
 
     const updatedTask = await Task.findOneAndUpdate(
-      { _id: taskId, user: req.user.id },
-      { name, details },
-      { new: true },
+        {
+            _id: taskId,
+            user: req.user.id,
+        },
+        { name, details },
+        { new: true },
     );
 
     if (!updatedTask) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found",
-      });
+        return next({
+            status: 404,
+            message: "Task not found",
+        });
     }
 
     return res.status(200).json({
-      success: true,
-      message: "Task updated successfully",
-      result: updatedTask,
+        success: true,
+        message: "Task updated successfully",
+        result: updatedTask,
     });
-  } catch (error) {
-    console.error("Task update error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Update failed",
-    });
-  }
-}
+});
 
-export async function deleteTask(req, res) {
-  try {
+export const deleteTask = asyncHandler(async (req, res, next) => {
     const taskId = req.params.id;
 
     if (!isValidObjectId(taskId)) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found",
-      });
+        return next({
+            status: 404,
+            message: "Task not found",
+        });
     }
 
     const deleted = await Task.findOneAndDelete({
-      _id: taskId,
-      user: req.user.id,
+        _id: taskId,
+        user: req.user.id,
     });
 
     if (!deleted) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found",
-      });
+        return next({
+            status: 404,
+            message: "Task not found",
+        });
     }
 
     return res.status(200).json({
-      success: true,
-      message: "Task deleted successfully",
+        success: true,
+        message: "Task deleted successfully",
     });
-  } catch (error) {
-    console.error("Task delete error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Delete failed",
-    });
-  }
-}
+});
 
-export async function completeTask(req, res) {
-  try {
+export const completeTask = asyncHandler(async (req, res, next) => {
     const taskId = req.params.id;
 
     if (!isValidObjectId(taskId)) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found",
-      });
+        return next({
+            status: 404,
+            message: "Task not found",
+        });
     }
 
-    const task = await Task.findOne({ _id: taskId, user: req.user.id });
+    const task = await Task.findOne({
+        _id: taskId,
+        user: req.user.id,
+    });
 
     if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found",
-      });
+        return next({
+            status: 404,
+            message: "Task not found",
+        });
     }
 
-    // Toggle: completed tasks go back to in-progress, in-progress tasks complete
-    const status = task.status === "completed" ? "in-progress" : "completed";
+    const status =
+        task.status === "completed"
+            ? "in-progress"
+            : "completed";
 
     const updatedTask = await Task.findByIdAndUpdate(
-      taskId,
-      { status },
-      { new: true },
+        taskId,
+        { status },
+        { new: true },
     );
 
     return res.status(200).json({
-      success: true,
-      message: "Task status updated successfully",
-      result: updatedTask,
+        success: true,
+        message: "Task status updated successfully",
+        result: updatedTask,
     });
-  } catch (error) {
-    console.error("Task status update error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Update failed",
-    });
-  }
-}
+});

@@ -6,6 +6,7 @@ const projectSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
     name: {
       type: String,
@@ -20,5 +21,9 @@ const projectSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+// Every list query filters by user and sorts by createdAt desc — a compound
+// index matching that shape serves both parts of the query directly.
+projectSchema.index({ user: 1, createdAt: -1 });
 
 export default mongoose.models.Project || mongoose.model('Project', projectSchema)
