@@ -4,7 +4,7 @@
 
 **A full-stack project & task management app — organize projects, break them into tasks, and watch progress build.**
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-devboard--two--flax.vercel.app-blue?style=for-the-badge&logo=vercel&logoColor=white)](https://devboard-two-flax.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-devboard--two--flax.vercel.app-blue?style=for-the-badge&logo=vercel&logoColor=white)](https://devboard-5rvah5koq-iyiola-ajibola-s-projects.vercel.app/)
 [![Repo](https://img.shields.io/badge/GitHub-Iyio--dev%2FDevboard-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Iyio-dev/Devboard)
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)
