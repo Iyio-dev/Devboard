@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import errorMiddleware from "./middlewares/errorMiddleware.js";
+import activityRoutes from "./routes/activityRoutes.js";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/v1/auth/", authRoutes);
 app.use("/api/v1/projects/", projectRoutes);
 app.use("/api/v1/tasks/", taskRoutes);
+app.use("/api/v1/activities/", activityRoutes);
 
 app.get("/health", (req, res) => {
     res.status(200).json({

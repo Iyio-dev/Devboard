@@ -24,6 +24,7 @@ import {
 import DashboardStats from "../components/DashboardStats.jsx";
 import {getTaskStats} from "../utils/taskStats.js";
 import {statByProject} from "../utils/statByProject.js";
+import ActivityTimeline from "../components/activity/ActivityTimeline.jsx";
 
 const Dashboard = () => {
   const user = getStoredUser();
@@ -34,7 +35,10 @@ const Dashboard = () => {
   // =========================
   const [dataState, setDataState] = useState({
     projects: [],
+    projectsPagination: null,
     tasks: [],
+    activities: [],
+    activitiesPagination: null,
   });
 
   // =========================
@@ -54,6 +58,8 @@ const Dashboard = () => {
   const [uiState, setUiState] = useState({
     search: "",
     projectToDelete: null,
+    page: 1,
+    limit: 5,
   });
 
   // =========================
@@ -68,18 +74,30 @@ const Dashboard = () => {
     }));
 
     try {
-      const [projectsResponse, tasksResponse] = await Promise.all([
-        api.get("/projects/"),
+      const [projectsResponse, tasksResponse, activitiesResponse] = await Promise.all([
+        api.get("/projects/", {
+          params: {
+            page: 1,
+            limit: 5,
+          }
+        }),
         api.get("/tasks/all"),
+        api.get("/activities/", {
+          params: {
+            page: 1,
+            limit: 5,
+          },
+        }),
       ]);
 
       setDataState({
         projects: projectsResponse.data.message || [],
+        projectsPagination: projectsResponse.data.pagination || null,
         tasks: tasksResponse.data.message || [],
+        activities: activitiesResponse.data.message || [],
+        activitiesPagination: activitiesResponse.data.pagination || null,
       });
     } catch (err) {
-      console.error("Error fetching dashboard data:", err);
-
       setStatus((prev) => ({
         ...prev,
         error:
@@ -90,7 +108,10 @@ const Dashboard = () => {
       setDataState((prev) => ({
       ...prev,
       projects: [],
+      projectsPagination: null,
       tasks: [],
+      activities: [],
+      activitiesPagination: null,
     }));
     } finally {
       setStatus((prev) => ({
@@ -125,7 +146,7 @@ const Dashboard = () => {
         projects: prev.projects.filter(
           (currentProject) => currentProject._id !== project._id,
         ),
-
+        projectsPagination: prev.projectsPagination,
         tasks: prev.tasks.filter((task) => task.project !== project._id),
       }));
 
@@ -151,14 +172,41 @@ const Dashboard = () => {
   };
 
   // =========================
+  // PAGINATION HANDLERS
+  // =========================
+
+  const handleNextPage = () => {
+    if (!dataState.projectsPagination) return;
+
+    if (!dataState.projectsPagination.hasNextPage) return;
+
+    setUiState((prev) => ({
+      ...prev,
+      page: prev.page + 1,
+    }));
+  };
+
+  const handlePreviousPage = () => {
+    if (!dataState.projectsPagination) return;
+
+    if (!dataState.projectsPagination.hasPrevPage) return;
+
+    setUiState((prev) => ({
+      ...prev,
+      page: prev.page - 1,
+    }));
+  };
+
+
+  // =========================
   // TASK STATISTICS
   // =========================
 
   const {
-  totalTasks,
-  completedTasks,
-  inProgressTasks,
-  completionRate,
+  total,
+  completed,
+        inProgress,
+        completionRate,
 } = getTaskStats(dataState.tasks);
 
   // =========================
@@ -210,17 +258,17 @@ const Dashboard = () => {
     },
     {
       label: "Total Tasks",
-      value: totalTasks,
+      value: total,
       icon: <ListTodo size={18} className="text-amber-600" />,
     },
     {
       label: "In-Progress Tasks",
-      value: inProgressTasks,
+      value: inProgress,
       icon: <Clock3 size={18} className="text-yellow-600" />,
     },
     {
       label: "Completed Tasks",
-      value: completedTasks,
+      value: completed,
       icon: <CheckCircle2 size={18} className="text-green-600" />,
     },
     {
@@ -257,6 +305,8 @@ const Dashboard = () => {
                 ))}
               </div>
 
+              <div className="h-64 animate-pulse rounded-xl bg-white" />
+              
               <div className="h-64 animate-pulse rounded-xl bg-white" />
             </div>
           ) : status.error ? (
@@ -306,14 +356,17 @@ const Dashboard = () => {
                   setUiState((prev) => ({
                     ...prev,
                     projectToDelete: project,
-                  }))
-                }
+                  }))}
+                  onNextPage={handleNextPage}
+                  onPreviousPage={handlePreviousPage}
+                  pagination={dataState.projectsPagination}
               />
+              
+          <ActivityTimeline activities={dataState.activities} />
             </>
           )}
         </div>
       </section>
-
       {/* =========================
           DELETE CONFIRMATION
       ========================= */}

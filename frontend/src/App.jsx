@@ -8,6 +8,7 @@ import ProjectDetails from './components/ProjectDetails'
 import Profile from './pages/Profile'
 import ProtectedRoute from './components/ProtectedRoute'
 import NotFound from './pages/NotFound'
+import ActivityHistory from './components/activity/ActivityHistory.jsx'
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
       <Route path='/dashboard' element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path='/create-project' element={<ProtectedRoute><CreateProject /></ProtectedRoute>} />
       <Route path='/projects/:id' element={<ProtectedRoute><ProjectDetails /></ProtectedRoute>} />
+      <Route path='/activity' element={<ProtectedRoute><ActivityHistory /></ProtectedRoute>} />
       <Route path='/profile' element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
       <Route path='/404' element={<NotFound />} />

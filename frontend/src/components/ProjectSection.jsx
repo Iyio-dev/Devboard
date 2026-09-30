@@ -10,6 +10,9 @@ const ProjectSection = ({
   onSearchChange,
   statsByProject,
   onDelete,
+  onNextPage,
+  onPreviousPage,
+  pagination,
 }) => {
   return (
     <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
@@ -62,6 +65,7 @@ const ProjectSection = ({
           No projects match "{search}".
         </p>
       ) : (
+        <>
         <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredProjects.map((project) => {
             const projectStats = statsByProject[project._id] || {
@@ -85,6 +89,23 @@ const ProjectSection = ({
             );
           })}
         </div>
+        <div className="flex items-center justify-between">
+          <button
+            onClick={onPreviousPage}
+            disabled={!pagination || !pagination.hasPrevPage}
+            className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <button
+            onClick={onNextPage}
+            disabled={!pagination || !pagination.hasNextPage}
+            className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+        </>
       )}
     </div>
   );

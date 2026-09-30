@@ -64,6 +64,14 @@ export const createProject = asyncHandler(async (req, res) => {
         user: req.user.id,
     });
 
+    await Activity.create({
+        user: req.user._id,
+        project: created._id,
+        task: null,
+        type: "project_created",
+        message: `Created project "${created.name}"`,
+      });
+
     return res.status(201).json({
         success: true,
         message: "Project created successfully",
@@ -96,6 +104,14 @@ export const updateProject = asyncHandler(async (req, res, next) => {
         });
     }
 
+    await Activity.create({
+        user: req.user._id,
+        project: updatedProject._id,
+        task: null,
+        type: "project_updated",
+        message: `Updated project "${updatedProject.name}"`,
+      });
+
     return res.status(200).json({
         success: true,
         message: "Project updated successfully",
@@ -124,6 +140,14 @@ export const deleteProject = asyncHandler(async (req, res, next) => {
         });
     }
     await Task.deleteMany({ project: projectId });
+
+    await Activity.create({
+        user: req.user._id,
+        project: deleted._id,
+        task: null,
+        type: "project_deleted",
+        message: `Deleted project "${deleted.name}"`,
+      });
 
     return res.status(200).json({
         success: true,
