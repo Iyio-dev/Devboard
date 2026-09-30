@@ -3,6 +3,7 @@ import Task from "../models/Task.js";
 import isValidObjectId from "../utils/isValidObjectId.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { getPagination, buildPaginationMeta } from "../utils/paginate.js";
+import Activity from "../models/Activity.js";
 
 function getOwnedProjectQuery(projectId, userId) {
     return { _id: projectId, user: userId };
